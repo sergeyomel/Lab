@@ -1,0 +1,564 @@
+using System;
+using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
+using System.Text.RegularExpressions;
+using System.Linq;
+
+namespace lab6RomashkaGraphics
+{
+    public static class PrintText
+    {
+        public static void PrintDict(Dictionary<string, Dictionary<string, List<string>>> dictTop)
+        {
+            foreach (string top in dictTop.Keys)
+            {
+                foreach (string rib in dictTop[top].Keys)
+                {
+                    foreach (string endTop in dictTop[top][rib])
+                    {
+                        Console.Write(top + " -> " + rib + " : " + endTop);
+                    }
+                    Console.WriteLine();
+                }
+                Console.WriteLine();
+            }
+        }
+        public static void PrintList(List<List<string>> lst)
+        {
+            foreach (List<string> l in lst)
+            {
+                foreach (string st in l)
+                {
+                    Console.Write(st + " ");
+                }
+                Console.Write(" | ");
+            }
+            Console.WriteLine();
+        }
+        public static void PrintList(List<string> lst)
+        {
+            foreach (string l in lst)
+            {
+                Console.Write(l + " ");
+            }
+            Console.WriteLine();
+        }
+    }
+    public class GeometricalFigure
+    {
+        private static Dictionary<(double, double), int> dictTop = new Dictionary<(double, double), int>();
+        private static Dictionary<(double, double), List<string>> dictRibForArrow = new Dictionary<(double, double), List<string>>();
+        private static Dictionary<(double, double), int> dictTopForRetArrow = new Dictionary<(double, double), int>();
+        private static Dictionary<(double, double), List<string>> dictRibForRetArrow = new Dictionary<(double, double), List<string>>();
+        private static double windSize = 500;
+
+        public static (Line XCoord, Line YCoord) DrawCoordinateLines()
+        {
+            Line x = new Line
+            {
+                X1 = windSize / 2,
+                Y1 = 0,
+                X2 = windSize / 2,
+                Y2 = windSize,
+                Stroke = Brushes.Black,
+            };
+            Line y = new Line
+            {
+                X1 = 0,
+                Y1 = windSize / 2,
+                X2 = windSize,
+                Y2 = windSize / 2,
+                Stroke = Brushes.Black,
+            };
+            return (x, y);
+        }
+
+        public static (Line, Line, Line, TextBlock) DrawArrow(double X1, double Y1, double X2, double Y2, string rib)
+        {
+            double len1 = 10;
+            double len2 = 5;
+            // Длина отрезка
+            double d = Math.Sqrt(Math.Pow(X2 - X1, 2) + Math.Pow(Y2 - Y1, 2));
+            // Координаты вектора
+            double X = X2 - X1;
+            double Y = Y2 - Y1;
+            if (!dictTop.ContainsKey((X, Y))) { dictTop[(X, Y)] = 13; }
+            else { dictTop[(X, Y)] += 10; }
+            //
+            double coef = (9 / 2);
+            double X3 = (X1 + X2 * coef) / (1 + coef);
+            double Y3 = (Y1 + Y2 * coef) / (1 + coef);
+            //
+            double X4 = X3 - (X / d) * len1;
+            double Y4 = Y3 - (Y / d) * len1;
+            //
+            double Xp = Y2 - Y1;
+            double Yp = X1 - X2;
+            //
+            double X5 = X4 + (Xp / d) * len2;
+            double Y5 = Y4 + (Yp / d) * len2;
+            double X6 = X4 - (Xp / d) * len2;
+            double Y6 = Y4 - (Yp / d) * len2;
+            //
+            Line mainLine = new Line
+            {
+                X1 = X1,
+                Y1 = windSize - Y1,
+                X2 = X2,
+                Y2 = windSize - Y2,
+                Stroke = Brushes.Red,
+            };
+            Line leftLine = new Line
+            {
+                X1 = X5,
+                Y1 = windSize - Y5,
+                X2 = X3,
+                Y2 = windSize - Y3,
+                Stroke = Brushes.Red,
+            };
+            Line rightLine = new Line
+            {
+                X1 = X6,
+                Y1 = windSize - Y6,
+                X2 = X3,
+                Y2 = windSize - Y3,
+                Stroke = Brushes.Red,
+            };
+            double xrib, yrib;
+            if (Math.Abs(X2 - X1) > Math.Abs(Y2 - Y1)) { xrib = X3 + dictTop[(X, Y)]; yrib = Y3 + 10; } else { xrib = X3 + 10; yrib = Y3 + dictTop[(X, Y)]; }
+            TextBlock textRib = new TextBlock
+            {
+                Text = rib,
+                FontSize = 13,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(left: xrib, top: windSize - yrib, right: 0, bottom: 0),
+            };
+            return (mainLine, leftLine, rightLine, textRib);
+        }
+        public static (Line, Line, Line, TextBlock) DrawArrowBetweenTop(double X1, double Y1, double X2, double Y2, double diametr, string rib)
+        {
+            double length = Math.Sqrt(Math.Pow(X2 - X1, 2) + Math.Pow(Y2 - Y1, 2));
+            double radius = diametr / 2;
+            double coef1 = radius / (length - radius);
+            double coef2 = (length - radius) / radius;
+            double xm = (X1 + coef1 * X2) / (1 + coef1);
+            double ym = (Y1 + coef1 * Y2) / (1 + coef1);
+            double xn = (X1 + coef2 * X2) / (1 + coef2);
+            double yn = (Y1 + coef2 * Y2) / (1 + coef2);
+            return (DrawArrow(xm, ym, xn, yn, rib));
+        }
+        public static (Path, TextBlock) DrawReturnArrow(double X1, double Y1, double X2, double Y2, double diametr, string rib)
+        {
+            // Просчёт координат центра фигуры
+            double X = X2 - X1;
+            double Y = Y2 - Y1;
+            double radius = diametr / 2;
+            double length = Math.Sqrt(Math.Pow(X2 - X1, 2) + Math.Pow(Y2 - Y1, 2));
+            double mn = length / (diametr / 2);
+            double xCenter = (X2 * (1 + mn) - X1) * (1 / mn);
+            double yCenter = (Y2 * (1 + mn) - Y1) * (1 / mn);
+
+            // Конструирование фигуры
+            Path myPath = new Path
+            {
+                Stroke = Brushes.Red,
+                StrokeThickness = 1
+            };
+
+            LineGeometry leftLine = new LineGeometry
+            {
+                StartPoint = new Point(xCenter + radius, windSize - yCenter),
+                EndPoint = new Point(xCenter + radius - 7, windSize - (yCenter + 10))
+            };
+
+            LineGeometry rightLine = new LineGeometry
+            {
+                StartPoint = new Point(xCenter + radius, windSize - yCenter),
+                EndPoint = new Point(xCenter + radius + 5, windSize - (yCenter + 10))
+            };
+
+            EllipseGeometry ellipse = new EllipseGeometry
+            {
+                RadiusX = radius,
+                RadiusY = radius,
+                Center = new Point(xCenter, windSize - yCenter)
+            };
+
+            GeometryGroup myFigure = new GeometryGroup();
+            myFigure.Children.Add(leftLine);
+            myFigure.Children.Add(rightLine);
+            myFigure.Children.Add(ellipse);
+
+            myPath.Data = myFigure;
+
+            // Вычисление угла поворота фигуры относительно её начального положения
+            double angleRotate = Math.Acos(X / Math.Sqrt(Math.Pow(X, 2) + Math.Pow(Y, 2))) * 180 / Math.PI;
+            if ((windSize - Y2) - Y1 < 0) { angleRotate = 360 - angleRotate; }
+
+            // Сборка составной фигуры 
+            RotateTransform myRTr = new RotateTransform(angleRotate, xCenter, windSize - yCenter);
+            myPath.RenderTransform = myRTr;
+
+            // Вычисление сдвига имени ребра относительно центра фигуры
+            if (!dictTopForRetArrow.ContainsKey((X, Y))) { dictTopForRetArrow[(X, Y)] = (int)radius; }
+            else { dictTopForRetArrow[(X, Y)] += 7; }
+
+            // Вычисление положения отрисовки имени ребра
+            double xrib, yrib;
+            if (Math.Abs(X2 - X1) > Math.Abs(Y2 - Y1))
+            {
+                if (X2 - X1 > 0) { xrib = xCenter + 20; yrib = yCenter + dictTopForRetArrow[(X, Y)]; }
+                else { xrib = xCenter - 20; yrib = yCenter - dictTopForRetArrow[(X, Y)]; }
+            }
+            else
+            {
+                if (Y2 - Y1 > 0) { xrib = xCenter + dictTopForRetArrow[(X, Y)]; yrib = yCenter + 20; }
+                else { xrib = xCenter - dictTopForRetArrow[(X, Y)]; yrib = yCenter - 20; }
+
+            }
+
+            // Текстовое поле с именем ребра
+            TextBlock textRib = new TextBlock
+            {
+                Text = rib,
+                FontSize = 13,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(left: xrib, top: windSize - yrib, right: 0, bottom: 0),
+            };
+
+            return (myPath, textRib);
+        }
+    }
+    public class TopCircle
+    {
+        private static readonly double windSize = 500;
+        private Ellipse circle;
+        private TextBlock textblock;
+        private (double X, double Y) coord;
+        private double diametr;
+        private string name;
+        public TopCircle((double X, double Y) coord, double diametr, string name)
+        {
+            this.coord.X = coord.X;
+            this.coord.Y = coord.Y;
+            this.diametr = diametr;
+            this.name = name;
+        }
+        public (double x, double y) GetCoord()
+        {
+            return (coord.X, coord.Y);
+        }
+        public string GetName()
+        {
+            return name;
+        }
+        
+        public (Ellipse, TextBlock) DrawTopCircle()
+        {
+            circle = new Ellipse
+            {
+                Width = diametr,
+                Height = diametr,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(left: coord.X - diametr / 2, top: windSize - (coord.Y + diametr / 2), right: 0, bottom: 0),
+                Fill = Brushes.LightGreen,
+                Stroke = Brushes.Black,
+                StrokeThickness = 3,
+            };
+            textblock = new TextBlock
+            {
+                FontSize = 20,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(left: coord.X - name.Length * 6, top: windSize - (coord.Y + (diametr - 20) / 2), right: 0, bottom: 0),
+                Text = name,
+            };
+
+            return (circle, textblock);
+        }
+
+    }
+    public class MinimizationMachine
+    {
+        public static Dictionary<string, Dictionary<string, List<string>>> RemoveUnreachableVertices(Dictionary<string, Dictionary<string, List<string>>> dictTop)
+        {
+            
+            List<string> listTop = new List<string>();
+            List<string> buffListTop = new List<string>();
+            foreach(string top in dictTop.Keys)
+            {
+                listTop.Add(top);
+                foreach(string rib in dictTop[top].Keys)
+                {
+                    buffListTop.AddRange(dictTop[top][rib]);
+                }
+            }
+            Console.WriteLine("Вершины графа: ");
+            PrintText.PrintList(listTop);
+            IEnumerable<string> buffIEListTop = buffListTop.Distinct();
+            buffListTop = buffIEListTop.ToList();
+            Console.WriteLine("Вершины графа, в которым мы можем прийти по рёбрам: ");
+            PrintText.PrintList(buffListTop);
+            if (listTop.Count != buffListTop.Count)
+            {
+                buffIEListTop = listTop.Except(buffListTop);
+                Console.WriteLine("Недостижимые вершины: ");
+                PrintText.PrintList(buffIEListTop.ToList());
+                foreach(string top in buffIEListTop)
+                {
+                    dictTop.Remove(top);
+                }
+            }
+            Console.WriteLine("Итоговые отношения графа: ");
+            PrintText.PrintDict(dictTop);
+            return dictTop;
+        }
+        public static List<List<string>> MinMachine(Dictionary<string, Dictionary<string, List<string>>> dTop)
+        {
+            Console.WriteLine("Отношения начального графа: ");
+            PrintText.PrintDict(dTop);
+            Dictionary<string, Dictionary<string, List<string>>> dictTop = RemoveUnreachableVertices(dTop);
+
+            Console.WriteLine("Инициализация списка списков начальных и конечных вершин:");
+            // Инициализация начального списка из начальных и конечных вершин
+            List<string> initialTop = new List<string>();
+            List<string> endTop = new List<string>();
+            foreach (string top in dictTop.Keys)
+            {
+                if (top[0].ToString().Equals("q")) { initialTop.Add(top); }
+                else { endTop.Add(top); }
+            }
+            List<List<string>> listTop = new List<List<string>>() { initialTop, endTop };
+            List<List<string>> buffListTop = new List<List<string>>();
+
+            // Уменьшение автомата
+            bool check = true;
+            int num = 0;
+            while (check)
+            {
+                check = false;
+                foreach (List<string> helpList in listTop)
+                {
+                    Console.WriteLine("Идём по списку списков вершин в главном списке");
+                    PrintText.PrintList(helpList);
+                    if (helpList.Count == 1) { buffListTop.Add(helpList); }
+                    else
+                    {
+                        List<string> lSingleton = new List<string>();
+                        List<string> lTop = new List<string>();
+                        foreach (string topInHList in helpList)
+                        {
+                            Console.WriteLine("Куда приходим из вершин: ");
+                            foreach (string rib in dictTop[topInHList].Keys)
+                            {                       
+                                foreach (string endT in dictTop[topInHList][rib])
+                                {
+                                    Console.Write($"{topInHList} -> {rib} : {endT}");
+                                    if (!helpList.Contains(endT))
+                                    {
+                                        Console.WriteLine("<- Вершина не из класса");
+                                        lSingleton.Add(topInHList);
+                                        check = true;
+                                    }
+                                    else
+                                    {
+                                        lTop.Add(topInHList);
+                                        Console.WriteLine();
+                                    }
+                                }
+                            }
+                        }
+                        IEnumerable<string> dislSingleton = lSingleton.Distinct();
+                        lSingleton = dislSingleton.ToList();
+                        IEnumerable<string> dislTop = lTop.Distinct();
+                        dislTop = dislTop.Except(dislSingleton);
+                        lTop = dislTop.ToList();
+
+                        foreach (string newTop in lSingleton) buffListTop.Add(new List<string>() { newTop });
+                        buffListTop.Add(lTop);
+                        Console.WriteLine("-----------");
+                    }
+
+                }
+                listTop = buffListTop;
+                Console.WriteLine("----------------------------------------");
+                Console.WriteLine("Получившиийся список после прохода алгоритма: ");
+                PrintText.PrintList(listTop);
+                Console.WriteLine("----------------------------------------");
+                buffListTop = new List<List<string>>();
+                ++num;
+            }
+            return(listTop);
+        }
+        public static Dictionary<string, Dictionary<string, List<string>>> CreateDictionary(List<string> lRule)
+        {
+            Dictionary<string, Dictionary<string, List<string>>> dictTop = new Dictionary<string, Dictionary<string, List<string>>>();
+            foreach (string rule in lRule)
+            {
+                string top = rule.Substring(0, 2);
+                string[] subRul = rule[4..].Split(new char[] { ' ' });
+                dictTop[top] = new Dictionary<string, List<string>>();
+                foreach (string st in subRul)
+                {
+                    if (dictTop[top].ContainsKey(st[1].ToString()))
+                    {
+                        dictTop[top][st[1].ToString()].Add(st[3..5]);
+                    }
+                    else
+                    {
+                        dictTop[top][st[1].ToString()] = new List<string>() { st[3..5] };
+                    }
+                }
+            }
+            //MinMachine(dictTop);
+            return(dictTop);
+        }
+        public void CheckInput()
+        {
+            List<string> lRule = new List<string>();
+            string pattern = @"[qQ]{1}->(([a-z|0-19]:q[0-9]{1}))*";
+            int countTop = Convert.ToInt32(Console.ReadLine());
+            int i = 0;
+            while (i < countTop)
+            {
+                Console.WriteLine($"Введите {i + 1} правило: ");
+                string rule = Console.ReadLine();
+                if (Regex.IsMatch(pattern, rule))
+                {
+                    lRule.Add(rule);
+                    i++;
+                }
+                else
+                {
+                    Console.WriteLine("ОШИБКА");
+                    break;
+                }
+            }
+            CreateDictionary(lRule);
+        }
+
+    }
+    public partial class MainWindow : Window
+    {
+        private static Dictionary<string, Dictionary<string, List<string>>> dictTop = MinimizationMachine.CreateDictionary(new List<string>()
+            {
+                "q0->(0:q0) (1:q1)",
+                "q1->(0:q2) (1:q1)",
+                "q2->(0:q0) (1:Q3)",
+                "Q3->(0:Q4) (1:Q3)",
+                "Q4->(0:Q5) (1:Q3)",
+                "Q5->(0:Q5) (1:Q3)",
+                "Q6->(0:Q5) (1:q2)"
+            });
+
+        /*"q0->(0:q1) (1:q3)",
+        "q1->(0:q2) (1:Q4)",
+        "q2->(0:Q5) (1:Q4)",
+        "q3->(0:q2) (1:Q4)",
+        "Q4->(1:Q5) (0:Q4)",
+        "Q5->(0:Q4) (1:Q5)"*/
+
+        private static List<List<string>> listTop = MinimizationMachine.MinMachine(dictTop);
+        private static Dictionary<string, List<string>> dictGroupTop = new Dictionary<string, List<string>>();
+        private static List<string> listForIndex = new List<string>();
+        private static char startSymb = 'A';
+        public MainWindow()
+        {
+            InitializeComponent();
+            Draw();
+        }
+
+        private void Draw()
+        {
+/*            Console.WriteLine("После убирания");
+            PrintText.PrintList(listTop);*/
+            int Count = listTop.Count;
+            List<TopCircle> listTopCircle = new List<TopCircle>();
+            int startX = 250;
+            int startY = 250;
+            double angle = 0;
+            double rotate = 360.0 / Count;
+            double radius = 170;
+            // Отрисовка координатных линий
+            can.Children.Add(GeometricalFigure.DrawCoordinateLines().XCoord);
+            can.Children.Add(GeometricalFigure.DrawCoordinateLines().YCoord);
+
+            // Инициализация словаря вершин для дальнейшего построения.
+            // Необходим, так как может возникнуть список из 2х и более вершин, которым нужно дать название, как группе.
+            foreach (List<string> lTop in listTop)
+            {
+                double x2 = Math.Cos(angle / 180 * Math.PI) * radius + startX;
+                double y2 = Math.Sin(angle / 180 * Math.PI) * radius + startY;
+                if (lTop.Count == 1)
+                {
+                    dictGroupTop[lTop[0]] = new List<string>() { lTop[0] };
+                    listTopCircle.Add(new TopCircle((x2, y2), 50, lTop[0]));
+                }
+                else if(lTop.Count > 1)
+                {
+                    dictGroupTop[startSymb.ToString()] = lTop;
+                    listTopCircle.Add(new TopCircle((x2, y2), 50, startSymb.ToString()));
+                    startSymb = (char)(((int)startSymb) + 1);
+                }       
+                angle += rotate;
+            }
+
+            foreach(string key in dictGroupTop.Keys) { listForIndex.Add(key); }
+
+            // Отрисовка вершин графа
+            foreach (TopCircle tp in listTopCircle)
+            {
+                can.Children.Add(tp.DrawTopCircle().Item1);
+                can.Children.Add(tp.DrawTopCircle().Item2);
+            }
+
+            Console.WriteLine(listForIndex.IndexOf("q1"));
+
+            // Прорисовка графа
+            // topInDGT - вершина в dictGroupTop
+            // topInDT - вершина в dictTop
+            // topInGT - вершина в подсписке dictGroupTop
+            foreach(string topInDGT in dictGroupTop.Keys)
+            {
+                foreach(string subTopInDGT in dictGroupTop[topInDGT])
+                {
+                    foreach(string rib in dictTop[subTopInDGT].Keys)
+                    {
+                        foreach(string subTopInRib in dictTop[subTopInDGT][rib])
+                        {
+                            // Опять идем по ключам в группах
+                            foreach(string topInDGT2 in dictGroupTop.Keys)
+                            {
+                                if (dictGroupTop[topInDGT2].Contains(subTopInRib))
+                                {
+                                    if (topInDGT.Equals(topInDGT2))
+                                    {
+                                       (double, double) two1 = listTopCircle[listForIndex.IndexOf(topInDGT)].GetCoord();
+                                       (Path, TextBlock) line1 = GeometricalFigure.DrawReturnArrow(startX, startY, two1.Item1, two1.Item2, 50, rib);
+                                        Canvas.SetZIndex(line1.Item1, -1);
+                                        can.Children.Add(line1.Item1);
+                                        Canvas.SetZIndex(line1.Item2, -1);
+                                        can.Children.Add(line1.Item2);
+                                    }
+                                    else
+                                    {
+                                        (double, double) one = listTopCircle[listForIndex.IndexOf(topInDGT)].GetCoord();
+                                        (double, double) two = listTopCircle[listForIndex.IndexOf(topInDGT2)].GetCoord();
+                                        (Line, Line, Line, TextBlock) line = GeometricalFigure.DrawArrowBetweenTop(one.Item1, one.Item2, two.Item1, two.Item2, 50, rib);
+                                        can.Children.Add(line.Item1);
+                                        can.Children.Add(line.Item2);
+                                        can.Children.Add(line.Item3);
+                                        can.Children.Add(line.Item4);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }            
+        }
+    }
+}
