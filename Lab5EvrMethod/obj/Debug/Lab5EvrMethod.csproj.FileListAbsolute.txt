@@ -1,0 +1,7 @@
+D:\MVSProjects\Lab5EvrMethod\Lab5EvrMethod\bin\Debug\Lab5EvrMethod.exe.config
+D:\MVSProjects\Lab5EvrMethod\Lab5EvrMethod\bin\Debug\Lab5EvrMethod.exe
+D:\MVSProjects\Lab5EvrMethod\Lab5EvrMethod\bin\Debug\Lab5EvrMethod.pdb
+D:\MVSProjects\Lab5EvrMethod\Lab5EvrMethod\obj\Debug\Lab5EvrMethod.csprojAssemblyReference.cache
+D:\MVSProjects\Lab5EvrMethod\Lab5EvrMethod\obj\Debug\Lab5EvrMethod.csproj.CoreCompileInputs.cache
+D:\MVSProjects\Lab5EvrMethod\Lab5EvrMethod\obj\Debug\Lab5EvrMethod.exe
+D:\MVSProjects\Lab5EvrMethod\Lab5EvrMethod\obj\Debug\Lab5EvrMethod.pdb
