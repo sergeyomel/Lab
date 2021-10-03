@@ -1,0 +1,13 @@
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\bin\Debug\netcoreapp3.1\lab1Automat.exe
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\bin\Debug\netcoreapp3.1\lab1Automat.deps.json
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\bin\Debug\netcoreapp3.1\lab1Automat.runtimeconfig.json
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\bin\Debug\netcoreapp3.1\lab1Automat.runtimeconfig.dev.json
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\bin\Debug\netcoreapp3.1\lab1Automat.dll
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\bin\Debug\netcoreapp3.1\lab1Automat.pdb
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\obj\Debug\netcoreapp3.1\lab1Automat.csprojAssemblyReference.cache
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\obj\Debug\netcoreapp3.1\lab1Automat.AssemblyInfoInputs.cache
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\obj\Debug\netcoreapp3.1\lab1Automat.AssemblyInfo.cs
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\obj\Debug\netcoreapp3.1\lab1Automat.csproj.CoreCompileInputs.cache
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\obj\Debug\netcoreapp3.1\lab1Automat.dll
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\obj\Debug\netcoreapp3.1\lab1Automat.pdb
+C:\Users\myacc\OneDrive\Рабочий стол\lab1Automat\lab1Automat\obj\Debug\netcoreapp3.1\lab1Automat.genruntimeconfig.cache
